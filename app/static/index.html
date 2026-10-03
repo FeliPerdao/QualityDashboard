@@ -1,305 +1,671 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Quality Dashboard</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-<nav class="navbar navbar-dark bg-dark mb-3">
-  <div class="container-fluid">
-    <span class="navbar-brand">Quality Dashboard · IPPM</span>
-    <button id="salir" class="btn btn-sm btn-outline-light">Salir</button>
-  </div>
-</nav>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Quality Dashboard</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+    </head>
+    <body class="bg-light">
+        <nav class="navbar navbar-dark bg-dark mb-3">
+            <div class="container-fluid">
+                <span class="navbar-brand">Quality Dashboard · IPPM</span>
+                <div>
+                    <button id="flotante" class="btn btn-sm btn-warning me-2">
+                        🗔 Panel flotante
+                    </button>
+                    <button id="salir" class="btn btn-sm btn-outline-light">
+                        Salir
+                    </button>
+                </div>
+            </div>
+        </nav>
 
-<div class="container-fluid">
-  <div class="row g-3">
+        <div class="container-fluid">
+            <div class="row g-3">
+                <!-- CARGA -->
+                <div class="col-lg-3">
+                    <div class="card shadow-sm" id="panelCarga">
+                        <div class="card-header fw-bold">Registrar funda</div>
+                        <div class="card-body">
+                            <label class="form-label fw-semibold">Isla</label>
+                            <div id="islas" class="d-grid gap-2 mb-3"></div>
 
-    <!-- CARGA -->
-    <div class="col-lg-3">
-      <div class="card shadow-sm">
-        <div class="card-header fw-bold">Registrar funda</div>
-        <div class="card-body">
-          <label class="form-label fw-semibold">Isla</label>
-          <div id="islas" class="d-grid gap-2 mb-3"></div>
+                            <label class="form-label fw-semibold"
+                                >Defectos (sin tildar = funda OK)</label
+                            >
+                            <div id="defectos" class="mb-3"></div>
 
-          <label class="form-label fw-semibold">Defectos (sin tildar = funda OK)</label>
-          <div id="defectos" class="mb-3"></div>
+                            <div class="text-muted small mb-1" id="cont-label">
+                                Total
+                            </div>
+                            <div class="row g-2 text-center mb-3">
+                                <div class="col-6">
+                                    <div class="border rounded p-2 bg-white">
+                                        <div class="small text-muted">
+                                            Controladas
+                                        </div>
+                                        <div id="c-ctrl" class="fs-3 fw-bold">
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2 bg-white">
+                                        <div class="small text-muted">OK</div>
+                                        <div
+                                            id="c-ok"
+                                            class="fs-3 fw-bold text-success"
+                                        >
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2 bg-white">
+                                        <div class="small text-muted">
+                                            Con defecto
+                                        </div>
+                                        <div
+                                            id="c-def"
+                                            class="fs-3 fw-bold text-danger"
+                                        >
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="border rounded p-2 bg-white">
+                                        <div class="small text-muted">
+                                            Retrabajadas
+                                        </div>
+                                        <div
+                                            id="c-ret"
+                                            class="fs-3 fw-bold text-primary"
+                                        >
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-          <div class="text-muted small mb-1" id="cont-label">Total</div>
-          <div class="row g-2 text-center mb-3">
-            <div class="col-6"><div class="border rounded p-2 bg-white"><div class="small text-muted">Controladas</div><div id="c-ctrl" class="fs-3 fw-bold">0</div></div></div>
-            <div class="col-6"><div class="border rounded p-2 bg-white"><div class="small text-muted">OK</div><div id="c-ok" class="fs-3 fw-bold text-success">0</div></div></div>
-            <div class="col-6"><div class="border rounded p-2 bg-white"><div class="small text-muted">Con defecto</div><div id="c-def" class="fs-3 fw-bold text-danger">0</div></div></div>
-            <div class="col-6"><div class="border rounded p-2 bg-white"><div class="small text-muted">Retrabajadas</div><div id="c-ret" class="fs-3 fw-bold text-primary">0</div></div></div>
-          </div>
+                            <button
+                                id="guardar"
+                                class="btn btn-success btn-lg w-100"
+                            >
+                                Guardar funda
+                            </button>
+                            <button
+                                id="retrabajada"
+                                class="btn btn-primary w-100 mt-2"
+                            >
+                                🔧 Funda retrabajada (liberada)
+                            </button>
+                            <button
+                                id="deshacer"
+                                class="btn btn-outline-secondary w-100 mt-2"
+                                disabled
+                            >
+                                ↩ Deshacer última carga
+                            </button>
+                            <div id="msg" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
 
-          <button id="guardar" class="btn btn-success btn-lg w-100">Guardar funda</button>
-          <button id="retrabajada" class="btn btn-primary w-100 mt-2">🔧 Funda retrabajada (liberada)</button>
-          <button id="deshacer" class="btn btn-outline-secondary w-100 mt-2" disabled>↩ Deshacer última carga</button>
-          <div id="msg" class="mt-2"></div>
+                <!-- DASHBOARD -->
+                <div class="col-lg-9">
+                    <div class="card shadow-sm mb-3">
+                        <div
+                            class="card-body d-flex flex-wrap gap-3 align-items-end"
+                        >
+                            <div>
+                                <label class="form-label mb-0">Desde</label
+                                ><input
+                                    type="date"
+                                    id="desde"
+                                    class="form-control"
+                                />
+                            </div>
+                            <div>
+                                <label class="form-label mb-0">Hasta</label
+                                ><input
+                                    type="date"
+                                    id="hasta"
+                                    class="form-control"
+                                />
+                            </div>
+                            <button id="filtrar" class="btn btn-primary">
+                                Actualizar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3 text-center">
+                        <div class="col">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="text-muted small">
+                                        Controladas
+                                    </div>
+                                    <div id="k-ctrl" class="fs-3 fw-bold">
+                                        0
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="text-muted small">OK</div>
+                                    <div
+                                        id="k-ok"
+                                        class="fs-3 fw-bold text-success"
+                                    >
+                                        0
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="text-muted small">
+                                        Con defecto
+                                    </div>
+                                    <div
+                                        id="k-def"
+                                        class="fs-3 fw-bold text-danger"
+                                    >
+                                        0
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="text-muted small">
+                                        Retrabajadas
+                                    </div>
+                                    <div
+                                        id="k-ret"
+                                        class="fs-3 fw-bold text-primary"
+                                    >
+                                        0
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="card shadow-sm">
+                                <div class="card-body">
+                                    <div class="text-muted small">
+                                        IPPM total
+                                    </div>
+                                    <div
+                                        id="k-ippm"
+                                        class="fs-3 fw-bold text-danger"
+                                    >
+                                        –
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 1 -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header">IPPM por isla</div>
+                                <div class="card-body">
+                                    <canvas id="chartIppm"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm">
+                                <div class="card-header">
+                                    Fundas por isla: liberadas (OK +
+                                    retrabajadas) y en retrabajo
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="chartFundas"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 2: tortas -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header">
+                            Defectos por isla (top 3 + otros)
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3" id="tortas"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fila 3 -->
+                    <div class="card shadow-sm mt-3">
+                        <div class="card-header">
+                            Controles por hora (OK + retrabajadas)
+                        </div>
+                        <div class="card-body">
+                            <canvas id="chartHora" height="110"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm mt-3">
+                        <table class="table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Isla</th>
+                                    <th class="text-end">Controladas</th>
+                                    <th class="text-end">OK</th>
+                                    <th class="text-end">Con defecto</th>
+                                    <th class="text-end">Retrabajadas</th>
+                                    <th class="text-end">En retrabajo</th>
+                                    <th class="text-end">IPPM</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- DASHBOARD -->
-    <div class="col-lg-9">
-      <div class="card shadow-sm mb-3">
-        <div class="card-body d-flex flex-wrap gap-3 align-items-end">
-          <div><label class="form-label mb-0">Desde</label><input type="date" id="desde" class="form-control"></div>
-          <div><label class="form-label mb-0">Hasta</label><input type="date" id="hasta" class="form-control"></div>
-          <button id="filtrar" class="btn btn-primary">Actualizar</button>
-        </div>
-      </div>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+        <script>
+            // Si la sesión vence, cualquier pedido con 401 manda al login
+            const _fetch = window.fetch;
+            window.fetch = async (...a) => {
+                const r = await _fetch(...a);
+                if (r.status === 401) location.href = "/login";
+                return r;
+            };
 
-      <div class="row g-3 mb-3 text-center">
-        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="text-muted small">Controladas</div><div id="k-ctrl" class="fs-3 fw-bold">0</div></div></div></div>
-        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="text-muted small">OK</div><div id="k-ok" class="fs-3 fw-bold text-success">0</div></div></div></div>
-        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="text-muted small">Con defecto</div><div id="k-def" class="fs-3 fw-bold text-danger">0</div></div></div></div>
-        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="text-muted small">Retrabajadas</div><div id="k-ret" class="fs-3 fw-bold text-primary">0</div></div></div></div>
-        <div class="col"><div class="card shadow-sm"><div class="card-body"><div class="text-muted small">IPPM total</div><div id="k-ippm" class="fs-3 fw-bold text-danger">–</div></div></div></div>
-      </div>
+            let pipWin = null;
+            const $ = (id) =>
+                document.getElementById(id) ||
+                pipWin?.document.getElementById(id);
+            const panel = document.getElementById("panelCarga");
+            const fmt = (v) => (v == null ? "–" : v.toLocaleString("es-AR"));
+            const hoy = new Date().toLocaleDateString("en-CA");
+            $("desde").value = hoy;
+            $("hasta").value = hoy;
 
-      <!-- Fila 1 -->
-      <div class="row g-3">
-        <div class="col-md-6"><div class="card shadow-sm"><div class="card-header">IPPM por isla</div><div class="card-body"><canvas id="chartIppm"></canvas></div></div></div>
-        <div class="col-md-6"><div class="card shadow-sm"><div class="card-header">Fundas por isla: liberadas (OK + retrabajadas) y en retrabajo</div><div class="card-body"><canvas id="chartFundas"></canvas></div></div></div>
-      </div>
+            const COLORES_ISLA = ["#0d6efd", "#dc3545", "#198754", "#fd7e14"];
+            const COLORES_DEF = [
+                "#e6194b",
+                "#3cb44b",
+                "#ffe119",
+                "#4363d8",
+                "#f58231",
+                "#911eb4",
+                "#46f0f0",
+                "#f032e6",
+            ];
 
-      <!-- Fila 2: tortas -->
-      <div class="card shadow-sm mt-3">
-        <div class="card-header">Defectos por isla (top 3 + otros)</div>
-        <div class="card-body"><div class="row g-3" id="tortas"></div></div>
-      </div>
+            let ultimoId = sessionStorage.getItem("ultimoId");
+            function marcarUltimo(id) {
+                ultimoId = id;
+                id
+                    ? sessionStorage.setItem("ultimoId", id)
+                    : sessionStorage.removeItem("ultimoId");
+                $("deshacer").disabled = !id;
+            }
 
-      <!-- Fila 3 -->
-      <div class="card shadow-sm mt-3">
-        <div class="card-header">Controles por hora (OK + retrabajadas)</div>
-        <div class="card-body"><canvas id="chartHora" height="110"></canvas></div>
-      </div>
+            let chartIppm,
+                chartFundas,
+                chartHora,
+                tortas = [],
+                ultimosDatos;
 
-      <div class="card shadow-sm mt-3">
-        <table class="table mb-0">
-          <thead><tr><th>Isla</th><th class="text-end">Controladas</th><th class="text-end">OK</th><th class="text-end">Con defecto</th><th class="text-end">Retrabajadas</th><th class="text-end">En retrabajo</th><th class="text-end">IPPM</th></tr></thead>
-          <tbody id="tabla"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</div>
+            function actualizarContador() {
+                if (!ultimosDatos) return;
+                const sel = panel.querySelector("input[name=isla]:checked");
+                const x =
+                    (sel &&
+                        ultimosDatos.islas.find((i) => i.id === +sel.value)) ||
+                    ultimosDatos.total;
+                $("cont-label").textContent = sel
+                    ? x.isla
+                    : "Total (todas las islas)";
+                $("c-ctrl").textContent = x.controladas;
+                $("c-ok").textContent = x.ok;
+                $("c-def").textContent = x.con_defecto;
+                $("c-ret").textContent = x.retrabajadas;
+            }
+            panel.addEventListener("change", (e) => {
+                if (e.target.name === "isla") actualizarContador();
+            });
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script>
-// Si la sesión vence, cualquier pedido con 401 manda al login
-const _fetch = window.fetch;
-window.fetch = async (...a) => {
-  const r = await _fetch(...a);
-  if (r.status === 401) location.href = "/login";
-  return r;
-};
-
-const $ = (id) => document.getElementById(id);
-const fmt = (v) => (v == null ? "–" : v.toLocaleString("es-AR"));
-const hoy = new Date().toLocaleDateString("en-CA");
-$("desde").value = hoy;
-$("hasta").value = hoy;
-
-const COLORES_ISLA = ["#0d6efd", "#dc3545", "#198754", "#fd7e14"];
-const COLORES_DEF = ["#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231", "#911eb4", "#46f0f0", "#f032e6"];
-
-let ultimoId = sessionStorage.getItem("ultimoId");
-function marcarUltimo(id) {
-  ultimoId = id;
-  id ? sessionStorage.setItem("ultimoId", id) : sessionStorage.removeItem("ultimoId");
-  $("deshacer").disabled = !id;
-}
-
-let chartIppm, chartFundas, chartHora, tortas = [], ultimosDatos;
-
-function actualizarContador() {
-  if (!ultimosDatos) return;
-  const sel = document.querySelector("input[name=isla]:checked");
-  const x = (sel && ultimosDatos.islas.find((i) => i.id === +sel.value)) || ultimosDatos.total;
-  $("cont-label").textContent = sel ? x.isla : "Total (todas las islas)";
-  $("c-ctrl").textContent = x.controladas;
-  $("c-ok").textContent = x.ok;
-  $("c-def").textContent = x.con_defecto;
-  $("c-ret").textContent = x.retrabajadas;
-}
-document.addEventListener("change", (e) => {
-  if (e.target.name === "isla") actualizarContador();
-});
-
-async function cargarCatalogos() {
-  const [islas, defectos] = await Promise.all([
-    fetch("/islas").then((r) => r.json()),
-    fetch("/defectos").then((r) => r.json()),
-  ]);
-  $("islas").innerHTML = islas.map((i) => `
+            async function cargarCatalogos() {
+                const [islas, defectos] = await Promise.all([
+                    fetch("/islas").then((r) => r.json()),
+                    fetch("/defectos").then((r) => r.json()),
+                ]);
+                $("islas").innerHTML = islas
+                    .map(
+                        (i) => `
     <input type="radio" class="btn-check" name="isla" id="isla${i.id}" value="${i.id}">
-    <label class="btn btn-outline-primary" for="isla${i.id}">${i.nombre}</label>`).join("");
-  $("defectos").innerHTML = defectos.map((d) => `
+    <label class="btn btn-outline-primary" for="isla${i.id}">${i.nombre}</label>`,
+                    )
+                    .join("");
+                $("defectos").innerHTML = defectos
+                    .map(
+                        (d) => `
     <div class="form-check mb-1">
       <input class="form-check-input defecto" type="checkbox" value="${d.id}" id="def${d.id}">
       <label class="form-check-label" for="def${d.id}">${d.nombre}</label>
-    </div>`).join("");
-}
+    </div>`,
+                    )
+                    .join("");
+            }
 
-function aviso(texto, tipo) {
-  $("msg").innerHTML = `<div class="alert alert-${tipo} py-2 mb-0">${texto}</div>`;
-  setTimeout(() => ($("msg").innerHTML = ""), 3000);
-}
+            function aviso(texto, tipo) {
+                $("msg").innerHTML =
+                    `<div class="alert alert-${tipo} py-2 mb-0">${texto}</div>`;
+                setTimeout(() => ($("msg").innerHTML = ""), 3000);
+            }
 
-async function enviar(retrabajada) {
-  const isla = document.querySelector("input[name=isla]:checked");
-  if (!isla) return aviso("Elegí una isla", "warning");
-  const defecto_ids = [...document.querySelectorAll(".defecto:checked")].map((c) => +c.value);
-  if (retrabajada && defecto_ids.length)
-    return aviso("Destildá los defectos: una funda retrabajada liberada no lleva defectos", "warning");
+            async function enviar(retrabajada) {
+                const isla = panel.querySelector("input[name=isla]:checked");
+                if (!isla) return aviso("Elegí una isla", "warning");
+                const defecto_ids = [
+                    ...panel.querySelectorAll(".defecto:checked"),
+                ].map((c) => +c.value);
+                if (retrabajada && defecto_ids.length)
+                    return aviso(
+                        "Destildá los defectos: una funda retrabajada liberada no lleva defectos",
+                        "warning",
+                    );
 
-  $("guardar").disabled = $("retrabajada").disabled = true;
-  try {
-    const r = await fetch("/registros", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isla_id: +isla.value, defecto_ids, retrabajada }),
-    });
-    if (!r.ok) {
-      const det = (await r.json()).detail || "Error al guardar";
-      return aviso(det, r.status === 409 ? "warning" : "danger");
-    }
-    marcarUltimo((await r.json()).id);
-    document.querySelectorAll(".defecto").forEach((c) => (c.checked = false));
-    if (retrabajada) aviso("Funda retrabajada registrada", "primary");
-    else aviso(defecto_ids.length ? "Funda guardada CON defecto" : "Funda guardada OK",
-               defecto_ids.length ? "danger" : "success");
-    cargarDashboard();
-  } catch (e) {
-    aviso("Sin conexión con el servidor", "danger");
-  } finally {
-    $("guardar").disabled = $("retrabajada").disabled = false;
-  }
-}
+                $("guardar").disabled = $("retrabajada").disabled = true;
+                try {
+                    const r = await fetch("/registros", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            isla_id: +isla.value,
+                            defecto_ids,
+                            retrabajada,
+                        }),
+                    });
+                    if (!r.ok) {
+                        const det =
+                            (await r.json()).detail || "Error al guardar";
+                        return aviso(
+                            det,
+                            r.status === 409 ? "warning" : "danger",
+                        );
+                    }
+                    marcarUltimo((await r.json()).id);
+                    panel
+                        .querySelectorAll(".defecto")
+                        .forEach((c) => (c.checked = false));
+                    if (retrabajada)
+                        aviso("Funda retrabajada registrada", "primary");
+                    else
+                        aviso(
+                            defecto_ids.length
+                                ? "Funda guardada CON defecto"
+                                : "Funda guardada OK",
+                            defecto_ids.length ? "danger" : "success",
+                        );
+                    cargarDashboard();
+                } catch (e) {
+                    aviso("Sin conexión con el servidor", "danger");
+                } finally {
+                    $("guardar").disabled = $("retrabajada").disabled = false;
+                }
+            }
 
-async function deshacer() {
-  if (!ultimoId) return;
-  const r = await fetch(`/registros/${ultimoId}`, { method: "DELETE" });
-  if (r.ok || r.status === 404) marcarUltimo(null);
-  if (r.ok) aviso("Última carga deshecha", "secondary");
-  else aviso((await r.json()).detail || "Error al deshacer", "warning");
-  cargarDashboard();
-}
+            async function deshacer() {
+                if (!ultimoId) return;
+                const r = await fetch(`/registros/${ultimoId}`, {
+                    method: "DELETE",
+                });
+                if (r.ok || r.status === 404) marcarUltimo(null);
+                if (r.ok) aviso("Última carga deshecha", "secondary");
+                else
+                    aviso(
+                        (await r.json()).detail || "Error al deshacer",
+                        "warning",
+                    );
+                cargarDashboard();
+            }
 
-function top3(defectos) {
-  const o = [...defectos].sort((a, b) => b.cantidad - a.cantidad);
-  const top = o.slice(0, 3);
-  const otros = o.slice(3).reduce((a, x) => a + x.cantidad, 0);
-  if (otros) top.push({ defecto: "Otros", cantidad: otros });
-  return top;
-}
+            function top3(defectos) {
+                const o = [...defectos].sort((a, b) => b.cantidad - a.cantidad);
+                const top = o.slice(0, 3);
+                const otros = o.slice(3).reduce((a, x) => a + x.cantidad, 0);
+                if (otros) top.push({ defecto: "Otros", cantidad: otros });
+                return top;
+            }
 
-async function cargarDashboard() {
-  const resp = await fetch(`/ippm?desde=${$("desde").value}&hasta=${$("hasta").value}`);
-  if (!resp.ok) return aviso((await resp.json()).detail || "Error al cargar", "warning");
-  const d = await resp.json();
-  ultimosDatos = d;
-  actualizarContador();
+            async function cargarDashboard() {
+                const resp = await fetch(
+                    `/ippm?desde=${$("desde").value}&hasta=${$("hasta").value}`,
+                );
+                if (!resp.ok)
+                    return aviso(
+                        (await resp.json()).detail || "Error al cargar",
+                        "warning",
+                    );
+                const d = await resp.json();
+                ultimosDatos = d;
+                actualizarContador();
 
-  $("k-ctrl").textContent = d.total.controladas;
-  $("k-ok").textContent = d.total.ok;
-  $("k-def").textContent = d.total.con_defecto;
-  $("k-ret").textContent = d.total.retrabajadas;
-  $("k-ippm").textContent = fmt(d.total.ippm);
+                $("k-ctrl").textContent = d.total.controladas;
+                $("k-ok").textContent = d.total.ok;
+                $("k-def").textContent = d.total.con_defecto;
+                $("k-ret").textContent = d.total.retrabajadas;
+                $("k-ippm").textContent = fmt(d.total.ippm);
 
-  $("tabla").innerHTML = d.islas.map((i) => `
+                $("tabla").innerHTML = d.islas
+                    .map(
+                        (i) => `
     <tr><td>${i.isla}</td><td class="text-end">${i.controladas}</td><td class="text-end">${i.ok}</td>
     <td class="text-end">${i.con_defecto}</td><td class="text-end">${i.retrabajadas}</td>
-    <td class="text-end">${i.en_retrabajo}</td><td class="text-end fw-bold">${fmt(i.ippm)}</td></tr>`).join("");
+    <td class="text-end">${i.en_retrabajo}</td><td class="text-end fw-bold">${fmt(i.ippm)}</td></tr>`,
+                    )
+                    .join("");
 
-  const nombres = d.islas.map((i) => i.isla);
+                const nombres = d.islas.map((i) => i.isla);
 
-  // 1) IPPM por isla
-  chartIppm?.destroy();
-  chartIppm = new Chart($("chartIppm"), {
-    type: "bar",
-    data: { labels: nombres, datasets: [{ label: "IPPM", data: d.islas.map((i) => i.ippm), backgroundColor: "#dc3545" }] },
-    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } },
-  });
+                // 1) IPPM por isla
+                chartIppm?.destroy();
+                chartIppm = new Chart($("chartIppm"), {
+                    type: "bar",
+                    data: {
+                        labels: nombres,
+                        datasets: [
+                            {
+                                label: "IPPM",
+                                data: d.islas.map((i) => i.ippm),
+                                backgroundColor: "#dc3545",
+                            },
+                        ],
+                    },
+                    options: {
+                        plugins: { legend: { display: false } },
+                        scales: { y: { beginAtZero: true } },
+                    },
+                });
 
-  // 2) Liberadas (OK + retrabajadas apiladas) pegadas a "en retrabajo"
-  chartFundas?.destroy();
-  chartFundas = new Chart($("chartFundas"), {
-    type: "bar",
-    data: {
-      labels: nombres,
-      datasets: [
-        { label: "OK", data: d.islas.map((i) => i.ok), backgroundColor: "#198754", stack: "liberadas" },
-        { label: "Retrabajadas", data: d.islas.map((i) => i.retrabajadas), backgroundColor: "#0d6efd", stack: "liberadas" },
-        { label: "En retrabajo", data: d.islas.map((i) => i.en_retrabajo), backgroundColor: "#fd7e14", stack: "retrabajo" },
-      ],
-    },
-    options: {
-      scales: {
-        x: { stacked: true },
-        y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } },
-      },
-    },
-  });
+                // 2) Liberadas (OK + retrabajadas apiladas) pegadas a "en retrabajo"
+                chartFundas?.destroy();
+                chartFundas = new Chart($("chartFundas"), {
+                    type: "bar",
+                    data: {
+                        labels: nombres,
+                        datasets: [
+                            {
+                                label: "OK",
+                                data: d.islas.map((i) => i.ok),
+                                backgroundColor: "#198754",
+                                stack: "liberadas",
+                            },
+                            {
+                                label: "Retrabajadas",
+                                data: d.islas.map((i) => i.retrabajadas),
+                                backgroundColor: "#0d6efd",
+                                stack: "liberadas",
+                            },
+                            {
+                                label: "En retrabajo",
+                                data: d.islas.map((i) => i.en_retrabajo),
+                                backgroundColor: "#fd7e14",
+                                stack: "retrabajo",
+                            },
+                        ],
+                    },
+                    options: {
+                        scales: {
+                            x: { stacked: true },
+                            y: {
+                                stacked: true,
+                                beginAtZero: true,
+                                ticks: { precision: 0 },
+                            },
+                        },
+                    },
+                });
 
-  // 3) Tortas de defectos: top 3 + Otros, una por isla
-  tortas.forEach((c) => c.destroy());
-  tortas = [];
-  $("tortas").innerHTML = d.islas.map((i, k) => {
-    const total = i.defectos.reduce((a, x) => a + x.cantidad, 0);
-    return `<div class="col-6 col-xl-3 text-center">
+                // 3) Tortas de defectos: top 3 + Otros, una por isla
+                tortas.forEach((c) => c.destroy());
+                tortas = [];
+                $("tortas").innerHTML = d.islas
+                    .map((i, k) => {
+                        const total = i.defectos.reduce(
+                            (a, x) => a + x.cantidad,
+                            0,
+                        );
+                        return `<div class="col-6 col-xl-3 text-center">
       <div class="fw-semibold">${i.isla}</div>
       <div class="small text-muted mb-1">${total} defecto${total === 1 ? "" : "s"}</div>
       <canvas id="torta${k}"></canvas></div>`;
-  }).join("");
-  d.islas.forEach((i, k) => {
-    const t = top3(i.defectos);
-    tortas.push(new Chart($(`torta${k}`), {
-      type: "pie",
-      data: {
-        labels: t.map((x) => x.defecto),
-        datasets: [{
-          data: t.map((x) => x.cantidad),
-          backgroundColor: t.map((x) =>
-            x.defecto === "Otros" ? "#adb5bd"
-              : COLORES_DEF[d.catalogo_defectos.indexOf(x.defecto) % COLORES_DEF.length]),
-        }],
-      },
-      options: { plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 10 } } } } },
-    }));
-  });
+                    })
+                    .join("");
+                d.islas.forEach((i, k) => {
+                    const t = top3(i.defectos);
+                    tortas.push(
+                        new Chart($(`torta${k}`), {
+                            type: "pie",
+                            data: {
+                                labels: t.map((x) => x.defecto),
+                                datasets: [
+                                    {
+                                        data: t.map((x) => x.cantidad),
+                                        backgroundColor: t.map((x) =>
+                                            x.defecto === "Otros"
+                                                ? "#adb5bd"
+                                                : COLORES_DEF[
+                                                      d.catalogo_defectos.indexOf(
+                                                          x.defecto,
+                                                      ) % COLORES_DEF.length
+                                                  ],
+                                        ),
+                                    },
+                                ],
+                            },
+                            options: {
+                                plugins: {
+                                    legend: {
+                                        position: "bottom",
+                                        labels: {
+                                            boxWidth: 10,
+                                            font: { size: 10 },
+                                        },
+                                    },
+                                },
+                            },
+                        }),
+                    );
+                });
 
-  // 4) Controles por hora: 4 barras (una por isla) en cada hora
-  chartHora?.destroy();
-  chartHora = new Chart($("chartHora"), {
-    type: "bar",
-    data: {
-      labels: d.por_hora.horas,
-      datasets: d.por_hora.series.map((s, k) => ({
-        label: s.isla, data: s.datos, backgroundColor: COLORES_ISLA[k % 4],
-      })),
-    },
-    options: { scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } },
-  });
-}
+                // 4) Controles por hora: 4 barras (una por isla) en cada hora
+                chartHora?.destroy();
+                chartHora = new Chart($("chartHora"), {
+                    type: "bar",
+                    data: {
+                        labels: d.por_hora.horas,
+                        datasets: d.por_hora.series.map((s, k) => ({
+                            label: s.isla,
+                            data: s.datos,
+                            backgroundColor: COLORES_ISLA[k % 4],
+                        })),
+                    },
+                    options: {
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } },
+                        },
+                    },
+                });
+            }
 
-$("guardar").onclick = () => enviar(false);
-$("retrabajada").onclick = () => enviar(true);
-$("deshacer").onclick = deshacer;
-$("filtrar").onclick = cargarDashboard;
-$("salir").onclick = async () => {
-  await fetch("/logout", { method: "POST" });
-  location.href = "/login";
-};
-marcarUltimo(ultimoId);
-cargarCatalogos().then(cargarDashboard);
-setInterval(cargarDashboard, 30000);
-</script>
-</body>
+            // ---------- Panel flotante ----------
+            async function abrirFlotante() {
+                if (pipWin) {
+                    pipWin.focus();
+                    return;
+                }
+                try {
+                    pipWin = await documentPictureInPicture.requestWindow({
+                        width: 380,
+                        height: 640,
+                    });
+                } catch (e) {
+                    return aviso(
+                        "No se pudo abrir el panel flotante",
+                        "warning",
+                    );
+                }
+                const win = pipWin;
+                // copiar los estilos (Bootstrap) a la ventana nueva
+                document
+                    .querySelectorAll('link[rel="stylesheet"]')
+                    .forEach((l) =>
+                        win.document.head.appendChild(l.cloneNode()),
+                    );
+                win.document.body.className = "bg-light p-2";
+
+                const marcador = document.createElement("div");
+                marcador.className = "alert alert-info";
+                marcador.textContent =
+                    "El panel de carga está en la ventana flotante.";
+                panel.before(marcador);
+                win.document.body.append(panel);
+
+                win.addEventListener("pagehide", () => {
+                    // al cerrar, el panel vuelve a la página
+                    marcador.replaceWith(panel);
+                    pipWin = null;
+                });
+            }
+
+            $("guardar").onclick = () => enviar(false);
+            $("retrabajada").onclick = () => enviar(true);
+            $("deshacer").onclick = deshacer;
+            $("filtrar").onclick = cargarDashboard;
+            $("salir").onclick = async () => {
+                await fetch("/logout", { method: "POST" });
+                location.href = "/login";
+            };
+            $("flotante").onclick = abrirFlotante;
+            if (!("documentPictureInPicture" in window))
+                $("flotante").hidden = true;
+
+            marcarUltimo(ultimoId);
+            cargarCatalogos().then(cargarDashboard);
+            setInterval(cargarDashboard, 30000);
+        </script>
+    </body>
 </html>

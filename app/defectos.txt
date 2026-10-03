@@ -1,6 +1,16 @@
+Falta de Componenete
+Componente Descosido
+Componente Invertido
+Pespunte
+Arruga
+Pieza Picada
+Hilo tenso
 Pliegue
 Toma de costura
 Piquetes desalineados
 Defecto en atraque
 Hilo sin cortar
 Costura desalineada
+Botón ISOFIX
+Costura Fragilizada / Códon AIRBAG
+Otros

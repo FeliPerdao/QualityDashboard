@@ -39,54 +39,72 @@
                             >
                             <div id="defectos" class="mb-3"></div>
 
-                            <div class="text-muted small mb-1" id="cont-label">
-                                Total
-                            </div>
-                            <div class="row g-2 text-center mb-3">
-                                <div class="col-6">
-                                    <div class="border rounded p-2 bg-white">
-                                        <div class="small text-muted">
-                                            Controladas
-                                        </div>
-                                        <div id="c-ctrl" class="fs-3 fw-bold">
-                                            0
+                            <div id="contadores" hidden>
+                                <div
+                                    class="text-muted small mb-1"
+                                    id="cont-label"
+                                >
+                                    Total
+                                </div>
+                                <div class="row g-2 text-center mb-3">
+                                    <div class="col-6">
+                                        <div
+                                            class="border rounded p-2 bg-white"
+                                        >
+                                            <div class="small text-muted">
+                                                Controladas
+                                            </div>
+                                            <div
+                                                id="c-ctrl"
+                                                class="fs-3 fw-bold"
+                                            >
+                                                0
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded p-2 bg-white">
-                                        <div class="small text-muted">OK</div>
+                                    <div class="col-6">
                                         <div
-                                            id="c-ok"
-                                            class="fs-3 fw-bold text-success"
+                                            class="border rounded p-2 bg-white"
                                         >
-                                            0
+                                            <div class="small text-muted">
+                                                OK
+                                            </div>
+                                            <div
+                                                id="c-ok"
+                                                class="fs-3 fw-bold text-success"
+                                            >
+                                                0
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded p-2 bg-white">
-                                        <div class="small text-muted">
-                                            Con defecto
-                                        </div>
+                                    <div class="col-6">
                                         <div
-                                            id="c-def"
-                                            class="fs-3 fw-bold text-danger"
+                                            class="border rounded p-2 bg-white"
                                         >
-                                            0
+                                            <div class="small text-muted">
+                                                Con defecto
+                                            </div>
+                                            <div
+                                                id="c-def"
+                                                class="fs-3 fw-bold text-danger"
+                                            >
+                                                0
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="border rounded p-2 bg-white">
-                                        <div class="small text-muted">
-                                            Retrabajadas
-                                        </div>
+                                    <div class="col-6">
                                         <div
-                                            id="c-ret"
-                                            class="fs-3 fw-bold text-primary"
+                                            class="border rounded p-2 bg-white"
                                         >
-                                            0
+                                            <div class="small text-muted">
+                                                Retrabajadas
+                                            </div>
+                                            <div
+                                                id="c-ret"
+                                                class="fs-3 fw-bold text-primary"
+                                            >
+                                                0
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -330,13 +348,11 @@
             function actualizarContador() {
                 if (!ultimosDatos) return;
                 const sel = panel.querySelector("input[name=isla]:checked");
-                const x =
-                    (sel &&
-                        ultimosDatos.islas.find((i) => i.id === +sel.value)) ||
-                    ultimosDatos.total;
-                $("cont-label").textContent = sel
-                    ? x.isla
-                    : "Total (todas las islas)";
+                $("contadores").hidden = !sel; // sin isla elegida no se muestra nada
+                if (!sel) return;
+                const x = ultimosDatos.islas.find((i) => i.id === +sel.value);
+                if (!x) return;
+                $("cont-label").textContent = x.isla;
                 $("c-ctrl").textContent = x.controladas;
                 $("c-ok").textContent = x.ok;
                 $("c-def").textContent = x.con_defecto;
@@ -581,8 +597,9 @@
                                     legend: {
                                         position: "bottom",
                                         labels: {
-                                            boxWidth: 10,
-                                            font: { size: 10 },
+                                            boxWidth: 16,
+                                            font: { size: 15 },
+                                            padding: 12,
                                         },
                                     },
                                 },

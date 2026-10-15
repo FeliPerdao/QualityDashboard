@@ -13,13 +13,16 @@ from sqlalchemy.orm import Session
 from starlette.middleware.sessions import SessionMiddleware
 
 from .database import Base, engine, get_db, SessionLocal
-from .models import Isla, Defecto, Registro, registro_defectos, ahora
-from .schemas import RegistroIn
+from .models import Isla, Defecto, Registro, Retrabajo, registro_defectos, ahora
+from .schemas import RegistroIn, RetrabajoIn
 
 load_dotenv()
 
 BASE_DIR = Path(__file__).parent
 ISLAS = ["Respaldo delantero", "Respaldo trasero", "Asiento delantero", "Asiento trasero"]
+TOTAL_RETRABAJO = 1429
+PROYECTOS = ["X6S", "P21", "KP1"]
+FUNDAS = ["Respaldo delantero", "Respaldo trasero", "Asiento delantero", "Asiento trasero"]
 
 APP_USER = os.getenv("APP_USER")
 APP_PASSWORD = os.getenv("APP_PASSWORD")
@@ -308,5 +311,73 @@ def ippm(desde: date | None = None, hasta: date | None = None, db: Session = Dep
         "por_hora": por_hora,
     }
 
+
+# ---------- Isla Retrabajos (separada del IPPM) ----------
+@app.get("/retrabajos")
+def pagina_retrabajos(request: Request):
+    if not request.session.get("auth"):
+        return RedirectResponse("/login")
+    return FileResponse(BASE_DIR / "static" / "retrabajos.html")
+
+
+@api.post("/retrabajos/registros")
+def crear_retrabajo(datos: RetrabajoIn, db: Session = Depends(get_db)):
+    if datos.proyecto not in PROYECTOS:
+        raise HTTPException(400, "Proyecto inválido")
+    if datos.funda not in FUNDAS:
+        raise HTTPException(400, "Funda inválida")
+    detalle = None
+    if datos.defecto == "Otros":
+        detalle = (datos.detalle or "").strip()[:200]
+        if not detalle:
+            raise HTTPException(400, "Escribí cuál fue el defecto")
+    elif not db.scalar(select(Defecto.id).where(Defecto.nombre == datos.defecto, Defecto.activo)):
+        raise HTTPException(400, "El defecto no existe o está desactivado")
+    r = Retrabajo(proyecto=datos.proyecto, funda=datos.funda, defecto=datos.defecto, detalle=detalle)
+    db.add(r)
+    db.commit()
+    return {"id": r.id}
+
+
+@api.delete("/retrabajos/registros/{registro_id}")
+def borrar_retrabajo(registro_id: int, db: Session = Depends(get_db)):
+    r = db.get(Retrabajo, registro_id)
+    if not r:
+        raise HTTPException(404, "El registro no existe")
+    db.delete(r)
+    db.commit()
+    return {"borrado": registro_id}
+
+
+@api.get("/retrabajos/resumen")
+def resumen_retrabajos(db: Session = Depends(get_db)):
+    filas = db.execute(
+        select(Retrabajo.proyecto, Retrabajo.defecto, func.count(Retrabajo.id))
+        .group_by(Retrabajo.proyecto, Retrabajo.defecto)
+    ).all()
+    por_defecto, por_proyecto = {}, {p: {} for p in PROYECTOS}
+    for p, d, c in filas:
+        por_defecto[d] = por_defecto.get(d, 0) + int(c)
+        por_proyecto.setdefault(p, {})[d] = int(c)
+    n = sum(por_defecto.values())
+    otros = db.execute(
+        select(Retrabajo.proyecto, Retrabajo.funda, Retrabajo.detalle, Retrabajo.creado_en)
+        .where(Retrabajo.defecto == "Otros")
+        .order_by(Retrabajo.id.desc())
+        .limit(10)
+    ).all()
+    return {
+        "total": TOTAL_RETRABAJO,
+        "retrabajadas": n,
+        "porcentaje": round(n / TOTAL_RETRABAJO * 100, 1),
+        "proyectos": PROYECTOS,
+        "fundas": FUNDAS,
+        "por_defecto": por_defecto,
+        "por_proyecto": por_proyecto,
+        "otros": [
+            {"proyecto": p, "funda": f, "detalle": d, "fecha": t.strftime("%d/%m %H:%M")}
+            for p, f, d, t in otros
+        ],
+    }
 
 app.include_router(api)

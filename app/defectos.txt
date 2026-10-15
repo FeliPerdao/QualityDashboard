@@ -4,7 +4,10 @@ Componente Invertido
 Pespunte
 Arruga
 Pieza Picada
-Hilo tenso
+Costura tensa/floja
+Desempalme entre toma de costura
+Costura Salteada
+Retrabajo mal realizado
 Pliegue
 Toma de costura
 Piquetes desalineados

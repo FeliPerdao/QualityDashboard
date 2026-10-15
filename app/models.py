@@ -46,3 +46,13 @@ class Registro(Base):
     retrabajada: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     creado_en: Mapped[datetime] = mapped_column(DateTime, default=ahora, index=True)
     defectos: Mapped[list[Defecto]] = relationship(secondary=registro_defectos)
+    
+class Retrabajo(Base):
+    __tablename__ = "retrabajos"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    proyecto: Mapped[str] = mapped_column(String(10))
+    funda: Mapped[str] = mapped_column(String(30))
+    defecto: Mapped[str] = mapped_column(String(80))
+    detalle: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    creado_en: Mapped[datetime] = mapped_column(DateTime, default=ahora)

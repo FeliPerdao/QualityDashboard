@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Retrabajos · Quality Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+<nav class="navbar navbar-dark bg-dark mb-3">
+  <div class="container-fluid">
+    <span class="navbar-brand">Quality Dashboard · Retrabajos</span>
+    <div>
+      <a href="/" class="btn btn-sm btn-info me-2">← Dashboard IPPM</a>
+      <button id="salir" class="btn btn-sm btn-outline-light">Salir</button>
+    </div>
+  </div>
+</nav>
+
+<div class="container-fluid">
+  <div class="row g-3">
+
+    <!-- CARGA -->
+    <div class="col-lg-3">
+      <div class="card shadow-sm">
+        <div class="card-header fw-bold">Funda retrabajada terminada</div>
+        <div class="card-body">
+          <label class="form-label fw-semibold">Proyecto</label>
+          <div id="proyectos" class="d-grid gap-2 mb-3"></div>
+
+          <label class="form-label fw-semibold">Funda</label>
+          <div id="fundas" class="d-grid gap-2 mb-3"></div>
+
+          <label class="form-label fw-semibold">Defecto</label>
+          <div id="defectos" class="mb-2"></div>
+          <input id="detalle" class="form-control mb-3" maxlength="200"
+                 placeholder="¿Cuál fue el defecto?" hidden>
+
+          <button id="guardar" class="btn btn-success btn-lg w-100">Guardar funda</button>
+          <button id="deshacer" class="btn btn-outline-secondary w-100 mt-2" disabled>↩ Deshacer última carga</button>
+          <div id="msg" class="mt-2"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="col-lg-9">
+      <div class="row g-3 mb-3 text-center">
+        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
+          <div class="text-muted small">Fundas retrabajadas</div>
+          <div id="k-ret" class="display-6 fw-bold text-primary">0</div></div></div></div>
+        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
+          <div class="text-muted small">% terminado</div>
+          <div id="k-pct" class="display-6 fw-bold text-success">0 %</div></div></div></div>
+        <div class="col-md-4"><div class="card shadow-sm"><div class="card-body">
+          <div class="text-muted small">Fundas totales</div>
+          <div id="k-tot" class="display-6 fw-bold">1429</div></div></div></div>
+      </div>
+
+      <div class="progress mb-3" style="height: 22px">
+        <div id="barra" class="progress-bar bg-success" style="width: 0%"></div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-md-6"><div class="card shadow-sm">
+          <div class="card-header">Tipos de defecto (total)</div>
+          <div class="card-body"><canvas id="chartTotal"></canvas></div></div></div>
+        <div class="col-md-6"><div class="card shadow-sm">
+          <div class="card-header">Tipos de defecto por proyecto</div>
+          <div class="card-body"><canvas id="chartProyecto"></canvas></div></div></div>
+      </div>
+
+      <div class="card shadow-sm mt-3">
+        <div class="card-header">Últimos defectos "Otros"</div>
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Fecha</th><th>Proyecto</th><th>Funda</th><th>Defecto escrito</th></tr></thead>
+          <tbody id="otros"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+const _fetch = window.fetch;
+window.fetch = async (...a) => {
+  const r = await _fetch(...a);
+  if (r.status === 401) location.href = "/login";
+  return r;
+};
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const COLORES_PROY = ["#0d6efd", "#dc3545", "#198754", "#fd7e14", "#6f42c1"];
+
+let ultimoId = sessionStorage.getItem("ultimoRetrabajo");
+function marcarUltimo(id) {
+  ultimoId = id;
+  id ? sessionStorage.setItem("ultimoRetrabajo", id) : sessionStorage.removeItem("ultimoRetrabajo");
+  $("deshacer").disabled = !id;
+}
+
+let chartTotal, chartProyecto, catalogoListo = false;
+
+function aviso(texto, tipo) {
+  $("msg").innerHTML = `<div class="alert alert-${tipo} py-2 mb-0">${texto}</div>`;
+  setTimeout(() => ($("msg").innerHTML = ""), 3000);
+}
+
+function radios(contenedor, name, valores) {
+  $(contenedor).innerHTML = valores.map((v, i) => `
+    <input type="radio" class="btn-check" name="${name}" id="${name}${i}" value="${esc(v)}">
+    <label class="btn btn-outline-primary" for="${name}${i}">${esc(v)}</label>`).join("");
+}
+
+async function cargarCatalogos(res) {
+  radios("proyectos", "proyecto", res.proyectos);
+  radios("fundas", "funda", res.fundas);
+  let defectos = (await fetch("/defectos").then((r) => r.json())).map((d) => d.nombre);
+  defectos = defectos.filter((n) => n !== "Otros").concat("Otros");
+  $("defectos").innerHTML = defectos.map((n, i) => `
+    <div class="form-check mb-1">
+      <input class="form-check-input" type="radio" name="defecto" value="${esc(n)}" id="def${i}">
+      <label class="form-check-label" for="def${i}">${esc(n)}</label>
+    </div>`).join("");
+  document.querySelectorAll("input[name=defecto]").forEach((r) =>
+    r.addEventListener("change", () => {
+      const otros = document.querySelector("input[name=defecto]:checked").value === "Otros";
+      $("detalle").hidden = !otros;
+      if (otros) $("detalle").focus();
+    }));
+  catalogoListo = true;
+}
+
+const elegido = (name) => document.querySelector(`input[name=${name}]:checked`)?.value;
+
+async function guardar() {
+  const proyecto = elegido("proyecto"), funda = elegido("funda"), defecto = elegido("defecto");
+  if (!proyecto) return aviso("Elegí el proyecto", "warning");
+  if (!funda) return aviso("Elegí la funda", "warning");
+  if (!defecto) return aviso("Elegí el defecto", "warning");
+  const detalle = $("detalle").value.trim();
+  if (defecto === "Otros" && !detalle) return aviso("Escribí cuál fue el defecto", "warning");
+
+  $("guardar").disabled = true;
+  try {
+    const r = await fetch("/retrabajos/registros", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ proyecto, funda, defecto, detalle }),
+    });
+    if (!r.ok) return aviso((await r.json()).detail || "Error al guardar", "danger");
+    marcarUltimo((await r.json()).id);
+    document.querySelectorAll("input[name=defecto]").forEach((c) => (c.checked = false));
+    $("detalle").value = "";
+    $("detalle").hidden = true;
+    aviso("Funda retrabajada guardada", "success");
+    cargarResumen();
+  } catch (e) {
+    aviso("Sin conexión con el servidor", "danger");
+  } finally {
+    $("guardar").disabled = false;
+  }
+}
+
+async function deshacer() {
+  if (!ultimoId) return;
+  const r = await fetch(`/retrabajos/registros/${ultimoId}`, { method: "DELETE" });
+  if (r.ok || r.status === 404) marcarUltimo(null);
+  aviso(r.ok ? "Última carga deshecha" : "Esa carga ya no existe", r.ok ? "secondary" : "warning");
+  cargarResumen();
+}
+
+async function cargarResumen() {
+  const resp = await fetch("/retrabajos/resumen");
+  if (!resp.ok) return;
+  const d = await resp.json();
+  if (!catalogoListo) await cargarCatalogos(d);
+
+  $("k-ret").textContent = d.retrabajadas;
+  $("k-pct").textContent = d.porcentaje.toLocaleString("es-AR") + " %";
+  $("k-tot").textContent = d.total.toLocaleString("es-AR");
+  $("barra").style.width = Math.min(100, d.porcentaje) + "%";
+  $("barra").textContent = d.porcentaje.toLocaleString("es-AR") + " %";
+
+  // defectos ordenados de mayor a menor
+  const orden = Object.entries(d.por_defecto).sort((a, b) => b[1] - a[1]).map((x) => x[0]);
+
+  chartTotal?.destroy();
+  chartTotal = new Chart($("chartTotal"), {
+    type: "bar",
+    data: { labels: orden, datasets: [{ label: "Fundas", data: orden.map((n) => d.por_defecto[n]), backgroundColor: "#dc3545" }] },
+    options: { indexAxis: "y", plugins: { legend: { display: false } },
+               scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+
+  chartProyecto?.destroy();
+  chartProyecto = new Chart($("chartProyecto"), {
+    type: "bar",
+    data: {
+      labels: orden,
+      datasets: d.proyectos.map((p, k) => ({
+        label: p, data: orden.map((n) => d.por_proyecto[p]?.[n] || 0),
+        backgroundColor: COLORES_PROY[k % COLORES_PROY.length],
+      })),
+    },
+    options: { indexAxis: "y", scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } },
+  });
+
+  $("otros").innerHTML = d.otros.length
+    ? d.otros.map((o) => `<tr><td>${esc(o.fecha)}</td><td>${esc(o.proyecto)}</td><td>${esc(o.funda)}</td><td>${esc(o.detalle)}</td></tr>`).join("")
+    : `<tr><td colspan="4" class="text-muted">Sin registros</td></tr>`;
+}
+
+$("guardar").onclick = guardar;
+$("deshacer").onclick = deshacer;
+$("salir").onclick = async () => {
+  await fetch("/logout", { method: "POST" });
+  location.href = "/login";
+};
+marcarUltimo(ultimoId);
+cargarResumen();
+setInterval(cargarResumen, 30000);
+</script>
+</body>
+</html>

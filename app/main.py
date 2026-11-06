@@ -2,6 +2,7 @@ import os
 import secrets
 from datetime import date
 from pathlib import Path
+from . import desafio
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
@@ -381,3 +382,5 @@ def resumen_retrabajos(db: Session = Depends(get_db)):
     }
 
 app.include_router(api)
+app.include_router(desafio.publico)
+app.include_router(desafio.privado, dependencies=[Depends(requiere_login)])

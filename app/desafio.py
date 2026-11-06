@@ -179,21 +179,26 @@ def enviar(datos: EnvioIn, db: Session = Depends(get_db)):
             "omitidos": sorted(om, key=orden),
         }
 
-    norm = nombre.casefold()
-    if db.scalar(select(Envio.id).where(Envio.nombre_norm == norm)):
-        raise HTTPException(409, "Ese nombre ya participó. Agregá tu apellido o legajo.")
-    db.add(Envio(
-        nombre=nombre, nombre_norm=norm,
+    # ---- desde acá, FUERA del for ----
+    campos = dict(
         puntos=sum(puntos_f.values()), aciertos=ac_total, errores=er_total,
         puntos_f1=puntos_f["1"], puntos_f2=puntos_f["2"], puntos_f3=puntos_f["3"],
         respuestas=respuestas, detalle=detalle,
-    ))
-    try:
-        db.commit()
-    except IntegrityError:
-        db.rollback()
-        raise HTTPException(409, "Ese nombre ya participó. Agregá tu apellido o legajo.")
-    return {"ok": True}   # el puntaje NO se muestra al participante
+    )
+    n = 0
+    while True:   # intentos ilimitados: Juan, Juan (1), Juan (2), ...
+        sufijo = "" if n == 0 else f" ({n})"
+        final = nombre[: 60 - len(sufijo)] + sufijo
+        norm = final.casefold()
+        if not db.scalar(select(Envio.id).where(Envio.nombre_norm == norm)):
+            db.add(Envio(nombre=final, nombre_norm=norm, **campos))
+            try:
+                db.commit()
+                break
+            except IntegrityError:   # otro envío tomó ese nombre al mismo tiempo
+                db.rollback()
+        n += 1
+    return {"ok": True}
 
 
 # ---------- Resultados (con login) ----------

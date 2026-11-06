@@ -178,6 +178,15 @@
                     transform: rotate(0.8deg);
                 }
             }
+            .reloj {
+                font-size: 1.6rem;
+                font-weight: 900;
+                color: #2b8a3e;
+            }
+            .reloj.urgente {
+                color: #e03131;
+                animation: pulso 0.6s ease-in-out infinite;
+            }
             @media (prefers-reduced-motion: reduce) {
                 * {
                     animation: none !important;
@@ -222,12 +231,7 @@
                         uno que no existe <b>−5</b> &nbsp;·&nbsp; 😶 Defecto sin
                         marcar <b>0</b>
                     </div>
-                    <button
-                        id="cambiar"
-                        class="btn btn-sm btn-outline-secondary"
-                    >
-                        ← Cambiar nombre
-                    </button>
+                    <div class="reloj">⏱ <span id="reloj">3:00</span></div>
                 </div>
 
                 <div class="pista mb-3">
@@ -380,10 +384,36 @@
                 $("err-inicio").textContent = "";
                 $("saludo").textContent = nombre;
                 pantalla("juego");
+                iniciarReloj();
                 window.scrollTo(0, 0);
             }
 
-            async function enviar() {
+            const DURACION = 180; // segundos
+            let limite = 0,
+                timer = null;
+
+            function iniciarReloj() {
+                limite = Date.now() + DURACION * 1000;
+                clearInterval(timer);
+                timer = setInterval(tick, 250);
+                tick();
+            }
+            function detenerReloj() {
+                clearInterval(timer);
+                timer = null;
+            }
+            function tick() {
+                const s = Math.max(0, Math.ceil((limite - Date.now()) / 1000));
+                $("reloj").textContent =
+                    Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+                $("reloj").parentElement.classList.toggle("urgente", s <= 30);
+                if (s === 0) {
+                    detenerReloj();
+                    enviar(true);
+                }
+            }
+
+            async function enviar(auto) {
                 const respuestas = {};
                 config.fundas.forEach((f) => {
                     respuestas[f.id] = [
@@ -393,11 +423,13 @@
                     ].map((c) => c.value);
                 });
                 if (
+                    !auto &&
                     !confirm(
                         "¿Enviar tus respuestas? Después no se pueden cambiar.",
                     )
                 )
                     return;
+                detenerReloj();
                 $("enviar").disabled = true;
                 $("error").textContent = "";
                 try {
@@ -444,8 +476,7 @@
             $("nombre").addEventListener("keydown", (e) => {
                 if (e.key === "Enter") entrar();
             });
-            $("cambiar").onclick = () => pantalla("inicio");
-            $("enviar").onclick = enviar;
+            $("enviar").onclick = () => enviar(false);
             $("nuevo").onclick = nuevo;
             init();
         </script>

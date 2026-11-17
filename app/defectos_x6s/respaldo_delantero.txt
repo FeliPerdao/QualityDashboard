@@ -1,0 +1,25 @@
+# Un defecto por línea. [Título] = sección. Las líneas con # se ignoran.
+[CARA B]
+Bagueta faltante
+Bagueta invertida / mal posicionada
+Bidín faltante
+Bidín invertido / mal posicionado
+Desplazamiento de piquetes
+Hilo sin cortar
+Falta de sello
+
+[CARA A]
+Pliegues
+Banderita Italia
+Tela quebrada
+
+[S-DESIGN]
+Hilo sin cortar en el troquel de apoya cabeza
+
+[CUERO]
+Bandera Airbag
+Costura de la chute
+Pespunte
+Arrugas panel principal
+Velcro
+Costura saltada en el cerrado de la tapa

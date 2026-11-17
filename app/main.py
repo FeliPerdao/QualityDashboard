@@ -2,7 +2,7 @@ import os
 import secrets
 from datetime import date
 from pathlib import Path
-from . import desafio
+from . import desafio, x6s
 
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
@@ -62,6 +62,8 @@ with SessionLocal() as s:
         s.add_all([Isla(nombre=n) for n in ISLAS])
         s.commit()
     sincronizar_defectos(s)
+    
+x6s.sincronizar_todo()
 
 # Sin /docs ni /openapi.json públicos
 app = FastAPI(title="Quality Dashboard", docs_url=None, redoc_url=None, openapi_url=None)
@@ -384,3 +386,5 @@ def resumen_retrabajos(db: Session = Depends(get_db)):
 app.include_router(api)
 app.include_router(desafio.publico)
 app.include_router(desafio.privado, dependencies=[Depends(requiere_login)])
+app.include_router(x6s.publico)
+app.include_router(x6s.api)
